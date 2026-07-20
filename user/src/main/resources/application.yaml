@@ -3,7 +3,6 @@ spring:
     name: user-service
   data:
     mongodb:
-#      connection-string: mongodb+srv://admin:12345@user-data.oupds8o.mongodb.net/userdb?appName=user-data
       connection-string: mongodb://localhost:27017/userdb
       database: userdb
 server:
