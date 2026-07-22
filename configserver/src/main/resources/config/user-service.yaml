@@ -1,0 +1,28 @@
+spring:
+  data:
+    mongodb:
+      connection-string: ${MONGO_URI}
+      database: userdb
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
+
+
+
+
+#spring.application.name = user-service
+#spring.data.mongodb.connection-string = mongodb+srv://admin:12345@user-data.oupds8o.mongodb.net/userdb?appName=user-data
+#spring.data.mongodb.database = userdb
+#server.port = 8082

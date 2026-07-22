@@ -1,19 +1,5 @@
 spring:
   application:
     name: user-service
-  data:
-    mongodb:
-      connection-string: mongodb://localhost:27017/userdb
-      database: userdb
-server:
-  port: 8082
-
-
-
-
-
-
-#spring.application.name = user-service
-#spring.data.mongodb.connection-string = mongodb+srv://admin:12345@user-data.oupds8o.mongodb.net/userdb?appName=user-data
-#spring.data.mongodb.database = userdb
-#server.port = 8082
+  config:
+    import: optional:configserver:http://localhost:8888

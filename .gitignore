@@ -1,4 +1,8 @@
 .env
+order/.env
+product/.env
+user/.env
+configserver/.env
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
