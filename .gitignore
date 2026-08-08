@@ -9,6 +9,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 logs/
+.data/
 ### STS ###
 .apt_generated
 .classpath
