@@ -20,7 +20,7 @@ public class Order {
     private Long id;
 
 
-    private Long userId;
+    private String userId;
     private Long productId;
 
     private BigDecimal totalAmount;
