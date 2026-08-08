@@ -1,6 +1,10 @@
 package com.ecommerce.order.clients;
 
 import com.ecommerce.order.dtos.ProductResponse;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerInterceptor;
@@ -8,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
@@ -15,27 +20,18 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import java.util.Optional;
 
-//@Configuration
-//public class ProductServiceClientConfig {
-
-//    @Bean
-//    @LoadBalanced
-//    public RestClient.Builder restClientBuilder(){
-//        return RestClient.builder();
-//    }
-
-//    @Bean
-//    public ProductServiceClient restClientInterface(RestClient.Builder builder){
-//        RestClient restClient = builder.baseUrl("http://product-service").build();
-//        RestClientAdapter adapter = RestClientAdapter.create(restClient);
-//        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
-//        ProductServiceClient productServiceClient = factory.createClient(ProductServiceClient.class);
-//        return productServiceClient;
-//    }
-//}
 
 @Configuration
 public class ProductServiceClientConfig {
+
+    @Autowired(required = false)
+    private ObservationRegistry observationRegistry;
+
+    @Autowired(required = false)
+    private Tracer tracer;
+
+    @Autowired(required = false)
+    private Propagator propagator;
 
     @Bean
     ProductServiceClient productServiceClient(
@@ -44,12 +40,19 @@ public class ProductServiceClientConfig {
         ClientHttpRequestFactory requestFactory =
                 new JdkClientHttpRequestFactory();
 
-        RestClient restClient = RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .requestInterceptor(new LoadBalancerInterceptor(loadBalancerClient))
+                .requestInterceptor(createTracingInterceptor())
                 .requestFactory(requestFactory)
                 .baseUrl("http://product-service")
-                .defaultStatusHandler(HttpStatusCode::is4xxClientError, (request, response) -> Optional.empty())
-                .build();
+                .defaultStatusHandler(HttpStatusCode::is4xxClientError, (request, response) -> Optional.empty());
+//                .build();
+
+        if (observationRegistry != null) {
+            builder.requestInterceptor(createTracingInterceptor());
+        }
+
+        RestClient restClient = builder.build();
 
         HttpServiceProxyFactory factory =
                 HttpServiceProxyFactory.builderFor(
@@ -57,5 +60,20 @@ public class ProductServiceClientConfig {
                         .build();
 
         return factory.createClient(ProductServiceClient.class);
+    }
+
+    private ClientHttpRequestInterceptor createTracingInterceptor() {
+        return ((request, body, execution) ->
+        {
+            if(tracer != null && propagator != null && tracer.currentSpan() != null){
+                propagator.inject(tracer.currentTraceContext().context(),
+                        request.getHeaders(),
+                        (carrier, key, value) -> {
+                            assert carrier != null;
+                            carrier.add(key,value);
+                        });
+            }
+            return execution.execute(request,body);
+        });
     }
 }
