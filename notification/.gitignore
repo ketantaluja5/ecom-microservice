@@ -1,16 +1,10 @@
-.env
-order/.env
-product/.env
-user/.env
-configserver/.env
-notification/.env
 HELP.md
+.env
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-logs/
-.data/
+
 ### STS ###
 .apt_generated
 .classpath

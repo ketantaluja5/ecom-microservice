@@ -1,4 +1,4 @@
-package com.ecommerce.order.dtos;
+package com.ecommerce.notification.payload;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

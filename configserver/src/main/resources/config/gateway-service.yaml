@@ -34,13 +34,35 @@ management:
   endpoint:
     gateway:
       access: read-only
+    health:
+      show-details: always
+      show-components: always
   endpoints:
     web:
       exposure:
         include: "*"
+  health:
+    circuitbreakers:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ecomBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        slidingWindowType: count_based
+
+
 
 #logging:
 #  level:

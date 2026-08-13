@@ -7,6 +7,8 @@ import com.ecommerce.order.dtos.ProductResponse;
 import com.ecommerce.order.dtos.UserResponse;
 import com.ecommerce.order.models.CartItem;
 import com.ecommerce.order.repositories.CartItemRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,13 +20,18 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class CartService {
+
+    int attempt = 0;
 //    private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductServiceClient productServiceClient;
     private final UserServiceClient userServiceClient;
 //    private final UserRepository userRepository;
 
+//    @CircuitBreaker(name = "productService" , fallbackMethod = "addToCartFallback")
+@Retry(name = "retryBreaker" , fallbackMethod = "addToCartFallback")
     public boolean addToCart(String userId, CartItemRequest request) {
+    System.out.println("Attempt " + ++attempt);
         // Look for product
         ProductResponse productResponse = productServiceClient.getProductDetails(request.getProductId());
         if (productResponse==null)
@@ -54,12 +61,17 @@ public class CartService {
             // Create new cart item
             CartItem cartItem = new CartItem();
             cartItem.setUserId(userId);
-            cartItem.setProductId(Long.valueOf(request.getProductId()));
+            cartItem.setProductId(request.getProductId());
             cartItem.setQuantity(request.getQuantity());
             cartItem.setPrice(BigDecimal.valueOf(1000));
             cartItemRepository.save(cartItem);
         }
         return true;
+    }
+
+    public boolean addToCartFallback(String userId, CartItemRequest request,Exception e) {
+        e.printStackTrace();
+        return false;
     }
 
     public boolean deleteItemFromCart(String userId, String productId) {
