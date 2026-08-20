@@ -1,4 +1,4 @@
-# Ecom Microservices
+# CommerceCore Microservices
 
 A Spring Boot–based microservices e-commerce backend built around independently deployable services for orders, products, users, and notifications, backed by centralized configuration, service discovery, a single-entry API gateway, and full observability tooling.
 
